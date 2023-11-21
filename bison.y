@@ -1,55 +1,55 @@
 %{
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include "y.tab.h"
-    void yyerror(const char *s);
-    int yylex(void);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void yyerror(const char *s);
+int yylex(void);
 %}
 
 %union {
-    int ival;
-    char *sval;
+    int num;          
+    char *str;         
 }
 
-%token <sval> IDENTIFIER CONST_STRING
-%token <ival> NUMBER
-%token CONST_BOOL
-%token INDENT DEDENT NEWLINE
-%token IF ELIF ELSE WHILE FOR PRINT CLASS DEF RETURN
-%token ADD_OP MUL_OP UNARY_OP REL_OP LOGIC_OP NOT IN
+%token <str> IDENTIFIER STRING
+%token <num> NUMBER
+%token CLASS DEF IF ELIF ELSE WHILE FOR IN PRINT RETURN TRUE FALSE
+%token ADD_OP SUB_OP MUL_OP DIV_OP MOD_OP ASSIGN SEMICOLON COLON COMMA LPAREN RPAREN LBRACE RBRACE NEWLINE INDENT DEDENT LSQUARE RSQUARE RANGE
+%token <str> EQ NEQ LT GT LE GE AND OR NOT
+%start program
+
+%left OR
+%left AND
+%left EQ NEQ
+%left LT GT LE GE
+%left ADD_OP SUB_OP
+%left MUL_OP DIV_OP MOD_OP
+%right NOT
 
 %%
-
 program
-    : stmt_list
+    : stmt_list { printf("Parsed successfully.\n");exit(0); }
     ;
 
 stmt_list
-    : /* empty */
-    | stmt_list stmt
+    :stmtp
+    ;
+stmtp
+    : stmt stmtp
+    | /*epsilon*/
     ;
 
 stmt
-    : simple_stmt NEWLINE
+    : simple_stmt
     | compound_stmt
     ;
 
 simple_stmt
-    : assign_stmt
-    | print_stmt
-    | return_stmt
-    ;
-
-assign_stmt
-    : IDENTIFIER '=' expr
-    ;
-
-print_stmt
-    : PRINT '(' expr_list ')'
-    ;
-
-return_stmt
-    : RETURN expr
+    : assign_stmt NEWLINE
+    | print_stmt NEWLINE
+    | return_stmt NEWLINE
+    | expr_stmt NEWLINE
     ;
 
 compound_stmt
@@ -60,117 +60,149 @@ compound_stmt
     | func_def
     ;
 
+assign_stmt
+    : IDENTIFIER ASSIGN expr
+    ;
+
+print_stmt
+    : PRINT LPAREN expr_list RPAREN
+    ;
+
+return_stmt
+    : RETURN expr
+    ;
+
+expr_stmt
+    : expr
+    ;
+
 if_stmt
-    : IF '(' cond ')' ':' INDENT stmt_list DEDENT if_stmt_tail
+    : IF expr COLON block if_stmt_tail
     ;
 
 if_stmt_tail
-    : elif_stmt if_stmt_tail
-    | else_stmt
+    : ELIF expr COLON block if_stmt_tail
+    | ELSE COLON block
     | /* empty */
     ;
 
-elif_stmt
-    : ELIF '(' cond ')' ':' INDENT stmt_list DEDENT
-    ;
-
-else_stmt
-    : ELSE ':' INDENT stmt_list DEDENT
-    ;
-
 while_stmt
-    : WHILE '(' cond ')' ':' INDENT stmt_list DEDENT
+    : WHILE expr COLON block
     ;
 
 for_stmt
-    : FOR IDENTIFIER IN expr ':' INDENT stmt_list DEDENT
+    : FOR IDENTIFIER IN range_expr COLON block
+    ;
+
+block
+    : NEWLINE INDENT stmt_list DEDENT
+    ;
+
+range_expr
+    : RANGE LPAREN expr RPAREN
+    | RANGE LPAREN expr COMMA expr RPAREN
+    | RANGE LPAREN expr COMMA expr COMMA expr RPAREN
+    ;
+
+opt_expr_list
+    : /* empty */
+    | expr_list
+    ;
+expr_list
+    : expr
+    | expr_list COMMA expr
     ;
 
 class_def
-    : CLASS IDENTIFIER ':' inheritance INDENT stmt_list DEDENT
+    : CLASS IDENTIFIER inheritance COLON block
     ;
 
 inheritance
     : /* empty */
-    | IDENTIFIER inheritance_tail
+    | LPAREN IDENTIFIER inheritance_tail RPAREN
     ;
 
 inheritance_tail
     : /* empty */
-    | ',' IDENTIFIER inheritance_tail
+    | COMMA IDENTIFIER inheritance_tail
     ;
 
 func_def
-    : DEF IDENTIFIER '(' param_list ')' ':' INDENT stmt_list DEDENT
+    : DEF IDENTIFIER LPAREN param_list RPAREN COLON block
     ;
 
 param_list
     : /* empty */
-    | IDENTIFIER param_list_tail
+    | param_list_tail
     ;
 
 param_list_tail
-    : /* empty */
-    | ',' IDENTIFIER param_list_tail
-    ;
-
-cond
-    : expr REL_OP expr
-    | expr LOGIC_OP expr
-    | NOT expr
+    : IDENTIFIER
+    | IDENTIFIER COMMA param_list_tail
     ;
 
 expr
-    : term expr_tail
-    | CONST_STRING
-    | CONST_BOOL
-    | IDENTIFIER '.' IDENTIFIER
-    | call_expr /* call_expr is now only reduced here to avoid ambiguity */
-    ;
-
-expr_tail
-    : ADD_OP term expr_tail
-    | /* empty */
-    ;
-
-term
-    : factor term_tail
-    ;
-
-term_tail
-    : MUL_OP factor term_tail
-    | /* empty */
-    ;
-
-factor
-    : '(' expr ')'
-    | IDENTIFIER /* IDENTIFIER reduced to factor to avoid ambiguity */
+    : STRING
     | NUMBER
-    | UNARY_OP factor
-    /* call_expr has been removed from factor */
+    | TRUE
+    | FALSE
+    | IDENTIFIER
+    | IDENTIFIER '.' IDENTIFIER // To handle attribute access, like obj.method()
+    | LPAREN expr RPAREN
+    | expr EQ expr
+    | expr NEQ expr
+    | expr LT expr
+    | expr GT expr
+    | expr LE expr
+    | expr GE expr
+    | expr ADD_OP expr
+    | expr SUB_OP expr
+    | expr MUL_OP expr
+    | expr DIV_OP expr
+    | expr MOD_OP expr
+    | expr AND expr
+    | expr OR expr
+    | NOT expr
+    | call_expr
+    | list_comprehension
+    | dict_comprehension
     ;
 
 call_expr
-    : IDENTIFIER '(' expr_list ')'
+    : IDENTIFIER LPAREN opt_expr_list RPAREN
     ;
 
-expr_list
-    : /* empty */
-    | expr expr_list_tail
+list_comprehension
+    : LSQUARE expr FOR IDENTIFIER IN expr RSQUARE
     ;
 
-expr_list_tail
-    : /* empty */
-    | ',' expr expr_list_tail
+dict_comprehension
+    : LBRACE expr COLON expr FOR IDENTIFIER IN expr RBRACE
     ;
 
 %%
 
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+extern FILE *yyin;
+extern int yyparse(void);
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror(argv[1]);
+        return 1;
+    }
+
+    yyin = file;
+    yyparse();
+    fclose(file);
+    return 0;
 }
 
-int main(void) {
-    yyparse();
-    return 0;
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s \n", s);
 }

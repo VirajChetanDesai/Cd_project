@@ -55,28 +55,48 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
     IDENTIFIER = 258,              /* IDENTIFIER  */
-    CONST_STRING = 259,            /* CONST_STRING  */
+    STRING = 259,                  /* STRING  */
     NUMBER = 260,                  /* NUMBER  */
-    CONST_BOOL = 261,              /* CONST_BOOL  */
-    INDENT = 262,                  /* INDENT  */
-    DEDENT = 263,                  /* DEDENT  */
-    NEWLINE = 264,                 /* NEWLINE  */
-    IF = 265,                      /* IF  */
-    ELIF = 266,                    /* ELIF  */
-    ELSE = 267,                    /* ELSE  */
-    WHILE = 268,                   /* WHILE  */
-    FOR = 269,                     /* FOR  */
-    PRINT = 270,                   /* PRINT  */
-    CLASS = 271,                   /* CLASS  */
-    DEF = 272,                     /* DEF  */
-    RETURN = 273,                  /* RETURN  */
-    ADD_OP = 274,                  /* ADD_OP  */
+    CLASS = 261,                   /* CLASS  */
+    DEF = 262,                     /* DEF  */
+    IF = 263,                      /* IF  */
+    ELIF = 264,                    /* ELIF  */
+    ELSE = 265,                    /* ELSE  */
+    WHILE = 266,                   /* WHILE  */
+    FOR = 267,                     /* FOR  */
+    IN = 268,                      /* IN  */
+    PRINT = 269,                   /* PRINT  */
+    RETURN = 270,                  /* RETURN  */
+    TRUE = 271,                    /* TRUE  */
+    FALSE = 272,                   /* FALSE  */
+    ADD_OP = 273,                  /* ADD_OP  */
+    SUB_OP = 274,                  /* SUB_OP  */
     MUL_OP = 275,                  /* MUL_OP  */
-    UNARY_OP = 276,                /* UNARY_OP  */
-    REL_OP = 277,                  /* REL_OP  */
-    LOGIC_OP = 278,                /* LOGIC_OP  */
-    NOT = 279,                     /* NOT  */
-    IN = 280                       /* IN  */
+    DIV_OP = 276,                  /* DIV_OP  */
+    MOD_OP = 277,                  /* MOD_OP  */
+    ASSIGN = 278,                  /* ASSIGN  */
+    SEMICOLON = 279,               /* SEMICOLON  */
+    COLON = 280,                   /* COLON  */
+    COMMA = 281,                   /* COMMA  */
+    LPAREN = 282,                  /* LPAREN  */
+    RPAREN = 283,                  /* RPAREN  */
+    LBRACE = 284,                  /* LBRACE  */
+    RBRACE = 285,                  /* RBRACE  */
+    NEWLINE = 286,                 /* NEWLINE  */
+    INDENT = 287,                  /* INDENT  */
+    DEDENT = 288,                  /* DEDENT  */
+    LSQUARE = 289,                 /* LSQUARE  */
+    RSQUARE = 290,                 /* RSQUARE  */
+    RANGE = 291,                   /* RANGE  */
+    EQ = 292,                      /* EQ  */
+    NEQ = 293,                     /* NEQ  */
+    LT = 294,                      /* LT  */
+    GT = 295,                      /* GT  */
+    LE = 296,                      /* LE  */
+    GE = 297,                      /* GE  */
+    AND = 298,                     /* AND  */
+    OR = 299,                      /* OR  */
+    NOT = 300                      /* NOT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -85,12 +105,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 9 "bison.y"
+#line 10 "bison.y"
 
-    int ival;
-    char *sval;
+    int num;          
+    char *str;         
 
-#line 94 "bison.tab.h"
+#line 114 "bison.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
